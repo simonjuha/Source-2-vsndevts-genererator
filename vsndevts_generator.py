@@ -1,4 +1,5 @@
 import os
+import wave
 
 # set your relative directory of sound files folder
 directory = 'sounds/'
@@ -21,8 +22,19 @@ for subdir in os.listdir(directory):
             f = os.path.join(subdir_path, filename)
             # checking if it is a file
             if os.path.isfile(f):
-                # pair the filename with the subdirectory name using '.'
-                content += '\t' + subdir + '.' + f.split('\\')[1].split('.')[0] + ' =\n \t{\n\t\t type = "hlvr_default_3d"\n\t\t volume = 1.000000\n\t\t use_hrtf = 1.000000\n\t\t vsnd_files = ["' + f.split('.')[0] + '.vsnd",]\t\n\t}\n\n'
+                # check if the file is a .wav file
+                if f.endswith('.wav'):
+                    # open the .wav file and read its sampling rate
+                    with wave.open(f, 'rb') as wav_file:
+                        sampling_rate = wav_file.getframerate()
+                        if sampling_rate != 44100:
+                            # write a warning to the console
+                            print(f'Warning: {f} has sampling rate {sampling_rate}, expected 44100')
+                        # pair the filename with the subdirectory name using '.'
+                        content += '\t' + subdir + '.' + f.split('\\')[1].split('.')[0] + ' =\n \t{\n\t\t type = "hlvr_default_3d"\n\t\t volume = 1.000000\n\t\t use_hrtf = 1.000000\n\t\t vsnd_files = ["' + f.split('.')[0] + '.vsnd",]\t\n\t}\n\n'
+                else:
+                    # write a warning to the console
+                    print(f'Warning: {f} is not a .wav file, skipping')
 
 # write 
 content = content.replace('\\', '/') # fix slashes
@@ -30,3 +42,6 @@ content += "}"
 f = open(vsndevts, "w")
 f.write(content)
 f.close()
+
+# pause the execution of the program until the user has pressed a key
+input("Press any key to continue...")
